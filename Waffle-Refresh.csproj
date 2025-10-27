@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Waffle Refresh</AssemblyName>
-    <RootNamespace>Waffle-Refresh</RootNamespace>
+    <RootNamespace>WaffleRefresh</RootNamespace>
     <Product>Waffle-Refresh</Product>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
