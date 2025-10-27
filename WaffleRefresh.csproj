@@ -5,9 +5,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>WaffleRefresh</AssemblyName>
+    <AssemblyName>Waffle-Refresh</AssemblyName>
     <RootNamespace>WaffleRefresh</RootNamespace>
-    <Product>Waffle Refresh</Product>
+    <Product>Waffle-Refresh</Product>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>
