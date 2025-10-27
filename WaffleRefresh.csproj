@@ -5,7 +5,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Waffle-Refresh</AssemblyName>
+    <AssemblyName>Waffle Refresh</AssemblyName>
     <RootNamespace>WaffleRefresh</RootNamespace>
     <Product>Waffle-Refresh</Product>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
