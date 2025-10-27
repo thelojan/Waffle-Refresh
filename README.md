@@ -19,7 +19,7 @@
 ## 환경/호환성
 
 - Windows 11 환경에서 정상 동작 확인
-- Lenovo ThinkPad P1 Gen 5 165Hz 디스플레이에서 정상 작동 확인
+- **Lenovo ThinkPad P1 Gen 5** 165Hz 디스플레이에서 정상 작동 확인
 
 ## 빌드 방법
 
