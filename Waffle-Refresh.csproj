@@ -5,9 +5,22 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Waffle-Refresh</AssemblyName>
-    <RootNamespace>Waffle-Refresh</RootNamespace>
+    <AssemblyName>Waffle Refresh</AssemblyName>
+    <RootNamespace>WaffleRefresh</RootNamespace>
     <Product>Waffle-Refresh</Product>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <ReadyToRunUseCrossgen2>true</ReadyToRunUseCrossgen2>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugType>none</DebugType>
   </PropertyGroup>
 </Project>

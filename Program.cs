@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace WaffleRefresh
 {
@@ -18,6 +20,7 @@ namespace WaffleRefresh
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.ThreadException += (s, e) => Log.Write("ThreadException: " + e.Exception);
                 AppDomain.CurrentDomain.UnhandledException += (s, e) => Log.Write("UnhandledException: " + e.ExceptionObject);
+                System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
                 Log.Write("App start");
                 Application.Run(new TrayApp());
                 Log.Write("App exit");
@@ -34,6 +37,7 @@ namespace WaffleRefresh
     {
         private static readonly string LogDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Waffle-Refresh");
         private static readonly string PathStr = System.IO.Path.Combine(LogDir, "prs.log");
+        [Conditional("DEBUG")]
         public static void Write(string msg)
         {
             try
@@ -51,10 +55,10 @@ namespace WaffleRefresh
         private readonly int AcHz = 165;
         private readonly int DcHz = 60;
         private NotifyIcon _tray = null!;
-        private System.Windows.Forms.Timer _pollTimer = null!;
         private bool _enabled = true;
         private int _lastAppliedHz = 0;
         private IntPtr _powerRegHandle = IntPtr.Zero;
+        private EventHandler _displayChangedHandler;
 
         protected override void OnLoad(EventArgs e)
         {
@@ -78,10 +82,8 @@ namespace WaffleRefresh
             ctx.Items.Add(new ToolStripMenuItem("종료", null, (s, a) => Close()));
             _tray.ContextMenuStrip = ctx;
 
-            _pollTimer = new System.Windows.Forms.Timer { Interval = 10_000 };
-            _pollTimer.Tick += (_, __) => DetectAndSwitch();
-            _pollTimer.Start();
-            Log.Write("Timer started");
+            _displayChangedHandler = (_, __) => DisplayHelper.ClearCache();
+            SystemEvents.DisplaySettingsChanged += _displayChangedHandler;
 
             Log.Write("Before DetectAndSwitch");
             DetectAndSwitch();
@@ -108,6 +110,7 @@ namespace WaffleRefresh
                 UnregisterPowerSettingNotification(_powerRegHandle);
             }
             _tray?.Dispose();
+            if (_displayChangedHandler != null) SystemEvents.DisplaySettingsChanged -= _displayChangedHandler;
             Log.Write("Form closing");
             base.OnFormClosing(e);
         }
@@ -183,29 +186,34 @@ namespace WaffleRefresh
 
     internal static class DisplayHelper
     {
+        private static bool s_cacheValid;
+        private static int s_w, s_h, s_bpp;
+        private static DEVMODE? s_best60;
+        private static DEVMODE? s_best165;
+
+        public static void ClearCache()
+        {
+            s_cacheValid = false;
+            s_best60 = null;
+            s_best165 = null;
+        }
+
         public static bool TrySetPrimaryDisplayRefreshRate(int desiredHz, out int appliedHz)
         {
             appliedHz = 0;
             Log.Write($"TrySetPrimaryDisplayRefreshRate desired={desiredHz}");
             if (!EnumCurrent(out var current)) { Log.Write("EnumCurrent failed"); return false; }
 
-            var modes = EnumerateModesMatching(current.dmPelsWidth, current.dmPelsHeight, current.dmBitsPerPel);
-            Log.Write($"Modes matching count={modes.Count}");
-            if (modes.Count == 0) return false;
-
-            DEVMODE? best = null;
-            int bestDiff = int.MaxValue;
-            foreach (var m in modes)
+            if (!s_cacheValid || current.dmPelsWidth != s_w || current.dmPelsHeight != s_h || current.dmBitsPerPel != s_bpp)
             {
-                if (m.dmDisplayFrequency <= 1) continue;
-                int diff = Math.Abs(m.dmDisplayFrequency - desiredHz);
-                if (diff < bestDiff)
-                {
-                    best = m;
-                    bestDiff = diff;
-                    if (diff == 0) break;
-                }
+                var modesAll = EnumerateModesMatching(current.dmPelsWidth, current.dmPelsHeight, current.dmBitsPerPel);
+                s_w = current.dmPelsWidth; s_h = current.dmPelsHeight; s_bpp = current.dmBitsPerPel;
+                s_best60 = FindClosest(modesAll, 60);
+                s_best165 = FindClosest(modesAll, 165);
+                s_cacheValid = true;
             }
+
+            DEVMODE? best = desiredHz == 60 ? s_best60 : (desiredHz == 165 ? s_best165 : FindClosest(EnumerateModesMatching(current.dmPelsWidth, current.dmPelsHeight, current.dmBitsPerPel), desiredHz));
             if (best == null) return false;
 
             var target = best.Value;
@@ -229,6 +237,25 @@ namespace WaffleRefresh
             }
             Log.Write($"ChangeDisplaySettingsEx result={result}");
             return false;
+        }
+
+        private static DEVMODE? FindClosest(List<DEVMODE> modes, int desired)
+        {
+            if (modes.Count == 0) return null;
+            DEVMODE? best = null;
+            int bestDiff = int.MaxValue;
+            foreach (var m in modes)
+            {
+                if (m.dmDisplayFrequency <= 1) continue;
+                int diff = Math.Abs(m.dmDisplayFrequency - desired);
+                if (diff < bestDiff)
+                {
+                    best = m;
+                    bestDiff = diff;
+                    if (diff == 0) break;
+                }
+            }
+            return best;
         }
 
         private static bool EnumCurrent(out DEVMODE dev)
