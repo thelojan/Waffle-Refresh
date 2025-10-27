@@ -13,7 +13,7 @@
 ## 다운로드/실행
 
 - 단일 EXE 위치
-  - `bin/Release/net8.0-windows/win-x64/publish/Waffle-Refresh.exe`
+  - `bin/Release/net8.0-windows/win-x64/publish/Waffle Refresh.exe`
 - 다른 PC에 복사해도 실행 가능(.NET 런타임 포함)
 
 ## 환경/호환성
@@ -60,12 +60,12 @@ dotnet restore
 ## 자동 시작(선택)
 
 - Windows 시작 시 자동 실행하려면, 다음 중 택1:
-  - 시작폴더에 바로가기 추가: Win + R → `shell:startup` → 폴더에 `Waffle-Refresh.exe` 바로가기 붙여넣기
+  - 시작폴더에 바로가기 추가: Win + R → `shell:startup` → 폴더에 `Waffle Refresh.exe` 바로가기 붙여넣기
   - 레지스트리 Run 키 사용(HKCU\Software\Microsoft\Windows\CurrentVersion\Run)
 
 ## 문제 해결
 
-- 아이콘/파일 잠김으로 빌드 실패: 실행 중인 `Waffle-Refresh.exe` 종료 후 다시 빌드
+- 아이콘/파일 잠김으로 빌드 실패: 실행 중인 `Waffle Refresh.exe` 종료 후 다시 빌드
 - 주사율이 적용되지 않음: 해당 해상도에서 원하는 주사율이 지원되는지 확인(고급 디스플레이 설정)
 - Windows 11 동적 주사율(DRR)이 개입할 수 있음 → 필요시 끄기 권장
 
