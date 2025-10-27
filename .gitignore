@@ -1,0 +1,38 @@
+# Dotnet / Visual Studio / Rider / VS Code
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+bin/
+obj/
+[Bb]uild/
+[Ll]ogs/
+TestResults/
+
+# Publish output
+**/publish/
+
+# IDE settings
+.vs/
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Others
+*.cache
+*.db
+*.log
+*.pid
+*.tmp
+~$*
