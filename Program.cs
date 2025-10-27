@@ -32,7 +32,7 @@ namespace WaffleRefresh
 
     internal static class Log
     {
-        private static readonly string LogDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WaffleRefresh");
+        private static readonly string LogDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Waffle-Refresh");
         private static readonly string PathStr = System.IO.Path.Combine(LogDir, "prs.log");
         public static void Write(string msg)
         {
@@ -67,7 +67,7 @@ namespace WaffleRefresh
             {
                 Icon = appIcon,
                 Visible = true,
-                Text = "Waffle Refresh"
+                Text = "Waffle-Refresh"
             };
             var ctx = new ContextMenuStrip();
             var enabledItem = new ToolStripMenuItem("자동 전환 사용", null, (s, a) => { _enabled = !_enabled; ((ToolStripMenuItem)s!).Checked = _enabled; })
@@ -130,12 +130,12 @@ namespace WaffleRefresh
                 if (DisplayHelper.TrySetPrimaryDisplayRefreshRate(target, out int applied))
                 {
                     _lastAppliedHz = applied;
-                    if (_tray != null) _tray.Text = $"Waffle Refresh ({(isAc ? "전원" : "배터리")} · {applied}Hz)";
+                    if (_tray != null) _tray.Text = $"Waffle-Refresh ({(isAc ? "전원" : "배터리")} · {applied}Hz)";
                     Log.Write($"Applied refresh rate: {applied}Hz");
                 }
                 else
                 {
-                    if (_tray != null) _tray.Text = $"Waffle Refresh (변경 실패)";
+                    if (_tray != null) _tray.Text = $"Waffle-Refresh (변경 실패)";
                     Log.Write("Failed to apply refresh rate");
                 }
             }
