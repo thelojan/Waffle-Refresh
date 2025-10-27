@@ -5,7 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Microsoft.Win32;
+ 
 
 namespace WaffleRefresh
 {
@@ -16,11 +16,20 @@ namespace WaffleRefresh
         {
             try
             {
+                var args = Environment.GetCommandLineArgs();
+                if (Array.Exists(args, a => string.Equals(a, "--oneshot", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "--apply", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var isAc = SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Online;
+                    int target = isAc ? 165 : 60;
+                    DisplayHelper.TrySetPrimaryDisplayRefreshRate(target, out _);
+                    return;
+                }
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.ThreadException += (s, e) => Log.Write("ThreadException: " + e.Exception);
                 AppDomain.CurrentDomain.UnhandledException += (s, e) => Log.Write("UnhandledException: " + e.ExceptionObject);
                 System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
                 Log.Write("App start");
                 Application.Run(new TrayApp());
                 Log.Write("App exit");
@@ -58,7 +67,6 @@ namespace WaffleRefresh
         private bool _enabled = true;
         private int _lastAppliedHz = 0;
         private IntPtr _powerRegHandle = IntPtr.Zero;
-        private EventHandler _displayChangedHandler;
 
         protected override void OnLoad(EventArgs e)
         {
@@ -82,8 +90,7 @@ namespace WaffleRefresh
             ctx.Items.Add(new ToolStripMenuItem("종료", null, (s, a) => Close()));
             _tray.ContextMenuStrip = ctx;
 
-            _displayChangedHandler = (_, __) => DisplayHelper.ClearCache();
-            SystemEvents.DisplaySettingsChanged += _displayChangedHandler;
+            
 
             Log.Write("Before DetectAndSwitch");
             DetectAndSwitch();
@@ -110,7 +117,6 @@ namespace WaffleRefresh
                 UnregisterPowerSettingNotification(_powerRegHandle);
             }
             _tray?.Dispose();
-            if (_displayChangedHandler != null) SystemEvents.DisplaySettingsChanged -= _displayChangedHandler;
             Log.Write("Form closing");
             base.OnFormClosing(e);
         }
@@ -147,6 +153,7 @@ namespace WaffleRefresh
         protected override void WndProc(ref Message m)
         {
             const int WM_POWERBROADCAST = 0x0218;
+            const int WM_DISPLAYCHANGE = 0x007E;
             const int PBT_POWERSETTINGCHANGE = 0x8013;
 
             if (m.Msg == WM_POWERBROADCAST && m.WParam.ToInt32() == PBT_POWERSETTINGCHANGE)
@@ -157,6 +164,10 @@ namespace WaffleRefresh
                     Log.Write("WM_POWERBROADCAST: power setting change");
                     DetectAndSwitch();
                 }
+            }
+            else if (m.Msg == WM_DISPLAYCHANGE)
+            {
+                DisplayHelper.ClearCache();
             }
             base.WndProc(ref m);
         }
@@ -190,6 +201,7 @@ namespace WaffleRefresh
         private static int s_w, s_h, s_bpp;
         private static DEVMODE? s_best60;
         private static DEVMODE? s_best165;
+        private static readonly List<DEVMODE> s_modesBuffer = new List<DEVMODE>(64);
 
         public static void ClearCache()
         {
@@ -217,6 +229,11 @@ namespace WaffleRefresh
             if (best == null) return false;
 
             var target = best.Value;
+            if (target.dmDisplayFrequency == current.dmDisplayFrequency)
+            {
+                appliedHz = current.dmDisplayFrequency;
+                return true;
+            }
             int result = ChangeDisplaySettingsEx(null, ref target, IntPtr.Zero, 0, IntPtr.Zero);
             if (result == DISP_CHANGE_SUCCESSFUL)
             {
@@ -266,7 +283,7 @@ namespace WaffleRefresh
 
         private static List<DEVMODE> EnumerateModesMatching(int width, int height, int bpp)
         {
-            var list = new List<DEVMODE>();
+            s_modesBuffer.Clear();
             int i = 0;
             while (true)
             {
@@ -274,11 +291,11 @@ namespace WaffleRefresh
                 if (!EnumDisplaySettings(null, i, ref dm)) break;
                 if (dm.dmPelsWidth == width && dm.dmPelsHeight == height && dm.dmBitsPerPel == bpp)
                 {
-                    list.Add(dm);
+                    s_modesBuffer.Add(dm);
                 }
                 i++;
             }
-            return list;
+            return s_modesBuffer;
         }
 
         private static DEVMODE CreateDevMode()

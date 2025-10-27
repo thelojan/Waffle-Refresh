@@ -5,8 +5,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Waffle Refresh</AssemblyName>
-    <RootNamespace>WaffleRefresh</RootNamespace>
+    <AssemblyName>Waffle-Refresh</AssemblyName>
+    <RootNamespace>Waffle-Refresh</RootNamespace>
     <Product>Waffle-Refresh</Product>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -22,5 +22,9 @@
     <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
     <Prefer32Bit>false</Prefer32Bit>
     <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>
